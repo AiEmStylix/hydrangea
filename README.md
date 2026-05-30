@@ -2,7 +2,9 @@
 
 A fast, composable Vietnamese IME core engine built in Zig
 
-License
+## License
 ---
 [MIT License](https://opensource.org/license/mit)
-
+---
+## Donate
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C41GR9WE)
