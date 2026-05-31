@@ -12,6 +12,7 @@ Install
 Build dependacies
 ---
 - zig >= 0.16
+
 Credits
 ===
 This project is heavily inspired by:
