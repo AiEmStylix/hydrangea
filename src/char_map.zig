@@ -1,6 +1,6 @@
 const std = @import("std");
 
-/// Note kí tự có dấu (unicode) ở theo quy tắc hiện đại
+/// Note: kí tự có dấu (unicode) ở theo quy tắc hiện đại
 /// chiếm 21-bit, nên các hàm map ở đây đều sử nhận kiểu u21 (21-bit unsigned integer)
 pub fn isVowel(c: u21) bool {
     return switch (c) {
@@ -111,3 +111,35 @@ pub fn getAccute(c: u21) ?u21 {
         else => unreachable,
     };
 }
+
+pub fn getAccute(c: u21) ?u21 {
+    return switch (c) {
+        'a' => 'à',
+        'â' => 'ầ',
+        'ă' => 'ằ',
+        'e' => 'è',
+        'ê' => 'ề',
+        'i' => 'ì',
+        'o' => 'ò',
+        'ô' => 'ồ',
+        'ơ' => 'ờ',
+        'u' => 'ù',
+        'ư' => 'ừ',
+        'y' => 'ỳ',
+        // UPPERCASE
+        'A' => 'À',
+        'Â' => 'Ầ',
+        'Ă' => 'Ằ',
+        'E' => 'È',
+        'Ê' => 'Ề',
+        'I' => 'Ì',
+        'O' => 'Ò',
+        'Ô' => 'Ồ',
+        'Ơ' => 'Ờ',
+        'U' => 'Ù',
+        'Ư' => 'Ừ',
+        'Y' => 'Ỳ',
+        else => unreachable,
+    };
+}
+
