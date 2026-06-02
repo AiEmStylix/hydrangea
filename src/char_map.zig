@@ -113,7 +113,7 @@ pub fn getAccute(c: u21) ?u21 {
     };
 }
 
-pub fn getBreve(c: u21) ?u21 {
+pub fn getGrave(c: u21) ?u21 {
     return switch (c) {
         'a' => 'à',
         'â' => 'ầ',
@@ -316,6 +316,25 @@ pub fn getHorn(c: u21) ?u21 {
         'Ỏ' => 'Ở',
         'Õ' => 'Ỡ',
         'Ọ' => 'Ợ',
+        else => unreachable,
+    };
+}
+
+pub fn getBreve(c: u21) ?u21 {
+    return switch (c) {
+        'a' => 'ă',
+        'á' => 'ắ',
+        'à' => 'ằ',
+        'ả' => 'ẳ',
+        'ã' => 'ẵ',
+        'ạ' => 'ặ',
+        // UPPERCASE
+        'A' => 'Ă',
+        'Á' => 'Ắ',
+        'À' => 'Ằ',
+        'Ả' => 'Ẳ',
+        'Ã' => 'Ẵ',
+        'Ạ' => 'Ặ',
         else => unreachable,
     };
 }
