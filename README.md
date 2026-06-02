@@ -17,7 +17,7 @@ Credits
 ===
 This project is heavily inspired by:
 - [vi-rs](https://github.com/ZeroX-DG/vi-rs)
-- [Bamboo Engine](https://github.com/BambooEngine/bamboo-core)
+- [ibus-bamboo](https://github.com/BambooEngine/ibus-bamboo)
 
 Donate
 ===
