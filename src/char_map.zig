@@ -112,7 +112,7 @@ pub fn getAccute(c: u21) ?u21 {
     };
 }
 
-pub fn getAccute(c: u21) ?u21 {
+pub fn getBreve(c: u21) ?u21 {
     return switch (c) {
         'a' => 'à',
         'â' => 'ầ',
@@ -142,4 +142,3 @@ pub fn getAccute(c: u21) ?u21 {
         else => unreachable,
     };
 }
-
