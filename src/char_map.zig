@@ -206,7 +206,7 @@ pub fn getTilde(c: u21) ?u21 {
     };
 }
 
-pub fn getUnderDot(c: u21) ?u21 {
+pub fn getUnderdot(c: u21) ?u21 {
     return switch (c) {
         'a' => 'ạ',
         'â' => 'ậ',
@@ -226,7 +226,7 @@ pub fn getUnderDot(c: u21) ?u21 {
         'Ă' => 'Ặ',
         'E' => 'Ẹ',
         'Ê' => 'Ệ',
-        'I' => 'Ĩ',
+        'I' => 'Ị',
         'O' => 'Ọ',
         'Ô' => 'Ộ',
         'Ơ' => 'Ợ',
