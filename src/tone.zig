@@ -1,4 +1,4 @@
-const ToneMark = enum {
+pub const ToneMark = enum {
     // Dấu sắc (acute accent) - rising tone
     Acute,
     // Dấu huyền (grave accent) - falling tone
