@@ -12,7 +12,7 @@ pub const SyllableComponents = struct {
     final_consonant: []const u8,
 };
 
-pub fn extractToneChar(cp: u21) ?ToneMark {
+fn extractToneChar(cp: u21) ?ToneMark {
     return switch (cp) {
         'á', 'ấ', 'ắ', 'é', 'ế', 'í', 'ó', 'ố', 'ớ', 'ú', 'ứ', 'ý', 'Á', 'Ấ', 'Ắ', 'É', 'Ế', 'Í', 'Ó', 'Ố', 'Ớ', 'Ú', 'Ứ', 'Ý' => .Acute,
         'à', 'ầ', 'ằ', 'è', 'ề', 'ì', 'ò', 'ồ', 'ờ', 'ù', 'ừ', 'ỳ', 'À', 'Ầ', 'Ằ', 'È', 'Ề', 'Ì', 'Ò', 'Ồ', 'Ờ', 'Ù', 'Ừ', 'Ỳ' => .Grave,
@@ -33,4 +33,19 @@ pub fn extractTone(input: []const u8) !?ToneMark {
         }
     }
     return null;
+}
+
+test "extract correct Tone" {
+    try testing.expectEqual(.Acute, (try extractTone("Tiếng")).?);
+    try testing.expectEqual(.Grave, (try extractTone("Ngày")).?);
+    try testing.expectEqual(.HookAbove, (try extractTone("Hỏi")).?);
+    try testing.expectEqual(.Tilde, (try extractTone("Ngã")).?);
+    try testing.expectEqual(.Underdot, (try extractTone("Nặng")).?);
+    try testing.expectEqual(@as(?ToneMark, null), (try extractTone("Ngon")));
+}
+
+test "Invalid UTF-8 " {
+    const invalid_utf8 = "\xff\xfe";
+
+    try testing.expectError(error.InvalidUtf8, extractTone(invalid_utf8));
 }
