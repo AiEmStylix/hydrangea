@@ -32,15 +32,9 @@
             pkgs.zigpkgs.default
 
             pkgs.pkg-config
-            pkgs.openssl
-            pkgs.eza
-            pkgs.fd
           ];
 
           shellHook = ''
-            alias ls=eza
-            alias find=fd
-
             echo "Zig dev shell ready"
             zig version
           '';
