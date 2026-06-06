@@ -1,10 +1,11 @@
 // Module import
 const std = @import("std");
-const tone = @import("tone.zig");
+const diacritics = @import("diacritics.zig");
+const char_map = @import("char_map.zig");
 
 const unicode = std.unicode;
 const testing = std.testing;
-const ToneMark = tone.ToneMark;
+const ToneMark = diacritics.ToneMark;
 
 pub const SyllableComponents = struct {
     initial_consonant: []const u8,
