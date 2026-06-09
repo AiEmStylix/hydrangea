@@ -6,11 +6,18 @@ const char_map = @import("char_map.zig");
 const unicode = std.unicode;
 const testing = std.testing;
 const ToneMark = diacritics.ToneMark;
+const ArrayList = std.ArrayList;
+const LetterModification = diacritics.LetterModification;
 
 pub const SyllableComponents = struct {
     initial_consonant: []const u8,
     vowel: []const u8,
     final_consonant: []const u8,
+};
+
+pub const ModResult = struct {
+    index: usize,
+    mod: LetterModification,
 };
 
 fn extractToneChar(cp: u21) ?ToneMark {
@@ -36,6 +43,23 @@ pub fn extractTone(input: []const u8) !?ToneMark {
     return null;
 }
 
+pub fn extractLetterModification(allocator: std.mem.Allocator, input: []const u8) ![]ModResult {
+    var utf8_view = try unicode.Utf8View.init(input);
+    var iter = utf8_view.iterator();
+
+    var result: ArrayList(ModResult) = .empty;
+    errdefer result.deinit(allocator);
+    var current_index: usize = 0;
+
+    while (iter.nextCodepoint()) |cp| {
+        if (char_map.getModification(cp)) |mod| {
+            try result.append(allocator, .{ .index = current_index, .mod = mod });
+        }
+        current_index += 1;
+    }
+    return result.toOwnedSlice(allocator);
+}
+
 test "extract correct Tone" {
     try testing.expectEqual(.Acute, (try extractTone("Tiếng")).?);
     try testing.expectEqual(.Grave, (try extractTone("Ngày")).?);
@@ -49,4 +73,62 @@ test "Invalid UTF-8 " {
     const invalid_utf8 = "\xff\xfe";
 
     try testing.expectError(error.InvalidUtf8, extractTone(invalid_utf8));
+}
+
+test "No modification" {
+    const text = "hello";
+    const result = try extractLetterModification(testing.allocator, text);
+
+    defer testing.allocator.free(result);
+
+    try testing.expectEqual(@as(usize, 0), result.len);
+}
+
+test "1 modification" {
+    const text = "đi";
+    const result = try extractLetterModification(testing.allocator, text);
+
+    defer testing.allocator.free(result);
+
+    try testing.expectEqual(@as(usize, 1), result.len);
+    try testing.expectEqual(@as(usize, 0), result[0].index);
+    try testing.expectEqual(LetterModification.Dyet, result[0].mod);
+}
+
+test "Many modification" {
+    const text = "được";
+    // This letter has 3 modification:
+    // index 0: đ => dyet
+    // index 1: ư => horn
+    // index 2: ợ => horn
+    const result = try extractLetterModification(testing.allocator, text);
+    defer testing.allocator.free(result);
+
+    try testing.expectEqual(@as(usize, 3), result.len);
+
+    try testing.expectEqual(@as(usize, 0), result[0].index);
+    try testing.expectEqual(LetterModification.Dyet, result[0].mod);
+
+    try testing.expectEqual(@as(usize, 1), result[1].index);
+    try testing.expectEqual(LetterModification.Horn, result[1].mod);
+
+    try testing.expectEqual(@as(usize, 2), result[2].index);
+    try testing.expectEqual(LetterModification.Horn, result[2].mod);
+}
+
+test "Modification with capital letter" {
+    const text = "Ước";
+    // This letter has 2 modifications:
+    // index 0: Ư => horn
+    // index 1: ớ => horn
+    const result = try extractLetterModification(testing.allocator, text);
+    defer testing.allocator.free(result);
+
+    try testing.expectEqual(@as(usize, 2), result.len);
+
+    try testing.expectEqual(@as(usize, 0), result[0].index);
+    try testing.expectEqual(LetterModification.Horn, result[0].mod);
+
+    try testing.expectEqual(@as(usize, 1), result[1].index);
+    try testing.expectEqual(LetterModification.Horn, result[1].mod);
 }
