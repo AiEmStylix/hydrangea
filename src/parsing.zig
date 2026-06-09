@@ -79,7 +79,7 @@ pub fn parseSyllable(input: []const u8) !SyllableComponents {
                 if (char_map.isVowel(cp)) has_vowel_after_gi = true;
             }
         }
-        init_len = if (!has_vowel_after_gi) 1 else 2; // Đưa ra ngoài input.len > 2 để xử lý cả từ "gi"
+        init_len = if (!has_vowel_after_gi) 1 else 2;
     } else if (is_qu) {
         init_len = 2;
     } else {
@@ -103,8 +103,10 @@ pub fn parseSyllable(input: []const u8) !SyllableComponents {
         if (!char_map.isVowel(cp)) break;
         vowel_len += slice.len;
     }
+
     const vowel = after_consonant[0..vowel_len];
     const final_consonant = after_consonant[vowel_len..];
+
     return .{ .initial_consonant = init_consonant, .vowel = vowel, .final_consonant = final_consonant };
 }
 
@@ -237,7 +239,7 @@ test "parseSyllable: Cụm đặc biệt 'GI'" {
     try testing.expectEqualStrings("g", res3.initial_consonant);
     try testing.expectEqualStrings("i", res3.vowel);
     try testing.expectEqualStrings("", res3.final_consonant);
-    
+
     // Trường hợp 4: Viết hoa
     const res4 = try parseSyllable("Giêng");
     try testing.expectEqualStrings("Gi", res4.initial_consonant);
