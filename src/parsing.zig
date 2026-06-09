@@ -60,6 +60,54 @@ pub fn extractLetterModification(allocator: std.mem.Allocator, input: []const u8
     return result.toOwnedSlice(allocator);
 }
 
+pub fn parseSyllable(input: []const u8) !SyllableComponents {
+    if (input.len == 0) {
+        return .{ .initial_consonant = "", .vowel = "", .final_consonant = "" };
+    }
+    var init_len: usize = 0;
+
+    const is_gi = input.len >= 2 and std.ascii.toLower(input[0]) == 'g' and std.ascii.toLower(input[1]) == 'i';
+    const is_qu = input.len >= 2 and std.ascii.toLower(input[0]) == 'q' and std.ascii.toLower(input[1]) == 'u';
+
+    // Extract init consonant
+    if (is_gi) {
+        var has_vowel_after_gi = false;
+        if (input.len > 2) {
+            var view = try unicode.Utf8View.init(input[2..]);
+            var iter = view.iterator();
+            if (iter.nextCodepoint()) |cp| {
+                if (char_map.isVowel(cp)) has_vowel_after_gi = true;
+            }
+        }
+        init_len = if (!has_vowel_after_gi) 1 else 2; // Đưa ra ngoài input.len > 2 để xử lý cả từ "gi"
+    } else if (is_qu) {
+        init_len = 2;
+    } else {
+        var view = try unicode.Utf8View.init(input);
+        var iter = view.iterator();
+        while (iter.nextCodepointSlice()) |slice| {
+            const cp = try unicode.utf8Decode(slice);
+            if (char_map.isVowel(cp)) break;
+            init_len += slice.len;
+        }
+    }
+    const init_consonant = input[0..init_len];
+    const after_consonant = input[init_len..];
+
+    // Extract vovel
+    var vowel_len: usize = 0;
+    var view2 = try unicode.Utf8View.init(after_consonant);
+    var iter2 = view2.iterator();
+    while (iter2.nextCodepointSlice()) |slice| {
+        const cp = try unicode.utf8Decode(slice);
+        if (!char_map.isVowel(cp)) break;
+        vowel_len += slice.len;
+    }
+    const vowel = after_consonant[0..vowel_len];
+    const final_consonant = after_consonant[vowel_len..];
+    return .{ .initial_consonant = init_consonant, .vowel = vowel, .final_consonant = final_consonant };
+}
+
 test "extract correct Tone" {
     try testing.expectEqual(.Acute, (try extractTone("Tiếng")).?);
     try testing.expectEqual(.Grave, (try extractTone("Ngày")).?);
@@ -131,4 +179,87 @@ test "Modification with capital letter" {
 
     try testing.expectEqual(@as(usize, 1), result[1].index);
     try testing.expectEqual(LetterModification.Horn, result[1].mod);
+}
+
+test "parseSyllable: Phụ âm đơn bình thường" {
+    const res = try parseSyllable("toán");
+    try testing.expectEqualStrings("t", res.initial_consonant);
+    try testing.expectEqualStrings("oá", res.vowel);
+    try testing.expectEqualStrings("n", res.final_consonant);
+}
+
+test "parseSyllable: Phụ âm kép/ba" {
+    const res = try parseSyllable("nghiêng");
+    try testing.expectEqualStrings("ngh", res.initial_consonant);
+    try testing.expectEqualStrings("iê", res.vowel);
+    try testing.expectEqualStrings("ng", res.final_consonant);
+
+    const res2 = try parseSyllable("chuyển");
+    try testing.expectEqualStrings("ch", res2.initial_consonant);
+    try testing.expectEqualStrings("uyể", res2.vowel);
+    try testing.expectEqualStrings("n", res2.final_consonant);
+}
+
+test "parseSyllable: Không có phụ âm đầu" {
+    const res = try parseSyllable("áo");
+    try testing.expectEqualStrings("", res.initial_consonant);
+    try testing.expectEqualStrings("áo", res.vowel);
+    try testing.expectEqualStrings("", res.final_consonant);
+
+    const res2 = try parseSyllable("ươm");
+    try testing.expectEqualStrings("", res2.initial_consonant);
+    try testing.expectEqualStrings("ươ", res2.vowel);
+    try testing.expectEqualStrings("m", res2.final_consonant);
+}
+
+test "parseSyllable: Không có phụ âm cuối" {
+    const res = try parseSyllable("đi");
+    try testing.expectEqualStrings("đ", res.initial_consonant);
+    try testing.expectEqualStrings("i", res.vowel);
+    try testing.expectEqualStrings("", res.final_consonant);
+}
+
+test "parseSyllable: Cụm đặc biệt 'GI'" {
+    // Trường hợp 1: Có nguyên âm đi sau -> Phụ âm đầu là "gi"
+    const res1 = try parseSyllable("giá");
+    try testing.expectEqualStrings("gi", res1.initial_consonant);
+    try testing.expectEqualStrings("á", res1.vowel);
+    try testing.expectEqualStrings("", res1.final_consonant);
+
+    // Trường hợp 2: Không có nguyên âm đi sau -> Phụ âm đầu là "g"
+    const res2 = try parseSyllable("gì");
+    try testing.expectEqualStrings("g", res2.initial_consonant);
+    try testing.expectEqualStrings("ì", res2.vowel);
+    try testing.expectEqualStrings("", res2.final_consonant);
+
+    // Trường hợp 3: Chữ "gi" đứng một mình
+    const res3 = try parseSyllable("gi");
+    try testing.expectEqualStrings("g", res3.initial_consonant);
+    try testing.expectEqualStrings("i", res3.vowel);
+    try testing.expectEqualStrings("", res3.final_consonant);
+    
+    // Trường hợp 4: Viết hoa
+    const res4 = try parseSyllable("Giêng");
+    try testing.expectEqualStrings("Gi", res4.initial_consonant);
+    try testing.expectEqualStrings("ê", res4.vowel);
+    try testing.expectEqualStrings("ng", res4.final_consonant);
+}
+
+test "parseSyllable: Cụm đặc biệt 'QU'" {
+    const res1 = try parseSyllable("quốc");
+    try testing.expectEqualStrings("qu", res1.initial_consonant);
+    try testing.expectEqualStrings("ố", res1.vowel);
+    try testing.expectEqualStrings("c", res1.final_consonant);
+
+    const res2 = try parseSyllable("Quanh");
+    try testing.expectEqualStrings("Qu", res2.initial_consonant);
+    try testing.expectEqualStrings("a", res2.vowel);
+    try testing.expectEqualStrings("nh", res2.final_consonant);
+}
+
+test "parseSyllable: Chuỗi rỗng" {
+    const res = try parseSyllable("");
+    try testing.expectEqualStrings("", res.initial_consonant);
+    try testing.expectEqualStrings("", res.vowel);
+    try testing.expectEqualStrings("", res.final_consonant);
 }
