@@ -1,4 +1,6 @@
 const std = @import("std");
+const diacritics = @import("diacritics.zig");
+const LetterModification = diacritics.LetterModification;
 
 /// Note: kí tự unicode ở theo quy chuẩn hiện đại
 /// chiếm 21-bit, nên các hàm map ở đây đều sẽ nhận kiểu u21 (21-bit unsigned integer)
@@ -342,30 +344,12 @@ pub fn getBreve(c: u21) ?u21 {
 }
 
 // Helper function to check if character has letter modification
-pub fn isCircumflex(c: u21) bool {
+pub fn getModification(c: u21) ?LetterModification {
     return switch (c) {
-        'â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ', 'ê', 'ế', 'ề', 'ể', 'ễ', 'ệ', 'ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ', 'Â', 'Ấ', 'Ầ', 'Ẩ', 'Ẫ', 'Ậ', 'Ê', 'Ế', 'Ề', 'Ể', 'Ễ', 'Ệ', 'Ô', 'Ố', 'Ồ', 'Ổ', 'Ỗ', 'Ộ' => true,
-        else => false,
-    };
-}
-
-pub fn isDyet(c: u21) bool {
-    return switch (c) {
-        'đ', 'Đ' => true,
-        else => false,
-    };
-}
-
-pub fn isHorn(c: u21) bool {
-    return switch (c) {
-        'ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự', 'ơ', 'ớ', 'ờ', 'ở', 'ỡ', 'ợ', 'Ư', 'Ứ', 'Ừ', 'Ử', 'Ữ', 'Ự', 'Ơ', 'Ớ', 'Ờ', 'Ở', 'Ỡ', 'Ợ' => true,
-        else => false,
-    };
-}
-
-pub fn isBreve(c: u21) bool {
-    return switch (c) {
-        'ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ', 'Ă', 'Ắ', 'Ằ', 'Ẳ', 'Ẵ', 'Ặ' => true,
-        else => false,
+        'ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự', 'ơ', 'ớ', 'ờ', 'ở', 'ỡ', 'ợ', 'Ư', 'Ứ', 'Ừ', 'Ử', 'Ữ', 'Ự', 'Ơ', 'Ớ', 'Ờ', 'Ở', 'Ỡ', 'Ợ' => .Horn,
+        'ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ', 'Ă', 'Ắ', 'Ằ', 'Ẳ', 'Ẵ', 'Ặ' => .Breve,
+        'â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ', 'ê', 'ế', 'ề', 'ể', 'ễ', 'ệ', 'ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ', 'Â', 'Ấ', 'Ầ', 'Ẩ', 'Ẫ', 'Ậ', 'Ê', 'Ế', 'Ề', 'Ể', 'Ễ', 'Ệ', 'Ô', 'Ố', 'Ồ', 'Ổ', 'Ỗ', 'Ộ' => .Circumflex,
+        'đ', 'Đ' => .Dyet,
+        else => null,
     };
 }
