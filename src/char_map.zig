@@ -109,7 +109,7 @@ pub fn getAccute(c: u21) ?u21 {
         'U' => 'Ú',
         'Ư' => 'Ứ',
         'Y' => 'Ý',
-        else => unreachable,
+        else => null,
     };
 }
 
@@ -140,7 +140,7 @@ pub fn getGrave(c: u21) ?u21 {
         'U' => 'Ù',
         'Ư' => 'Ừ',
         'Y' => 'Ỳ',
-        else => unreachable,
+        else => null,
     };
 }
 
@@ -171,7 +171,7 @@ pub fn getHookAbove(c: u21) ?u21 {
         'U' => 'Ủ',
         'Ư' => 'Ử',
         'Y' => 'Ỷ',
-        else => unreachable,
+        else => null,
     };
 }
 
@@ -202,7 +202,7 @@ pub fn getTilde(c: u21) ?u21 {
         'U' => 'Ũ',
         'Ư' => 'Ữ',
         'Y' => 'Ỹ',
-        else => unreachable,
+        else => null,
     };
 }
 
@@ -233,9 +233,11 @@ pub fn getUnderdot(c: u21) ?u21 {
         'U' => 'Ụ',
         'Ư' => 'Ự',
         'Y' => 'Ỵ',
-        else => unreachable,
+        else => null,
     };
 }
+
+// Letter Modification ở đoạn này
 
 // Hàm này để thêm dấu mũ (không thêm dấu thanh)
 pub fn getCircumflex(c: u21) ?u21 {
@@ -277,7 +279,7 @@ pub fn getCircumflex(c: u21) ?u21 {
         'Ỏ' => 'Ổ',
         'Õ' => 'Ỗ',
         'Ọ' => 'Ộ',
-        else => unreachable,
+        else => null,
     };
 }
 
@@ -285,7 +287,7 @@ pub fn getDyet(c: u21) ?u21 {
     return switch (c) {
         'd' => 'đ',
         'D' => 'Đ',
-        else => unreachable,
+        else => null,
     };
 }
 
@@ -316,7 +318,7 @@ pub fn getHorn(c: u21) ?u21 {
         'Ỏ' => 'Ở',
         'Õ' => 'Ỡ',
         'Ọ' => 'Ợ',
-        else => unreachable,
+        else => null,
     };
 }
 
@@ -335,6 +337,35 @@ pub fn getBreve(c: u21) ?u21 {
         'Ả' => 'Ẳ',
         'Ã' => 'Ẵ',
         'Ạ' => 'Ặ',
-        else => unreachable,
+        else => null,
+    };
+}
+
+// Helper function to check if character has letter modification
+pub fn isCircumflex(c: u21) bool {
+    return switch (c) {
+        'â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ', 'ê', 'ế', 'ề', 'ể', 'ễ', 'ệ', 'ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ', 'Â', 'Ấ', 'Ầ', 'Ẩ', 'Ẫ', 'Ậ', 'Ê', 'Ế', 'Ề', 'Ể', 'Ễ', 'Ệ', 'Ô', 'Ố', 'Ồ', 'Ổ', 'Ỗ', 'Ộ' => true,
+        else => false,
+    };
+}
+
+pub fn isDyet(c: u21) bool {
+    return switch (c) {
+        'đ', 'Đ' => true,
+        else => false,
+    };
+}
+
+pub fn isHorn(c: u21) bool {
+    return switch (c) {
+        'ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự', 'ơ', 'ớ', 'ờ', 'ở', 'ỡ', 'ợ', 'Ư', 'Ứ', 'Ừ', 'Ử', 'Ữ', 'Ự', 'Ơ', 'Ớ', 'Ờ', 'Ở', 'Ỡ', 'Ợ' => true,
+        else => false,
+    };
+}
+
+pub fn isBreve(c: u21) bool {
+    return switch (c) {
+        'ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ', 'Ă', 'Ắ', 'Ằ', 'Ẳ', 'Ẵ', 'Ặ' => true,
+        else => false,
     };
 }
