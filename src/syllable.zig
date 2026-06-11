@@ -1,3 +1,4 @@
+const unicode = @import("std").unicode;
 const ToneMark = @import("diacritics.zig").ToneMark;
 const diacritics = @import("diacritics.zig");
 const LetterModification = diacritics.LetterModification;
@@ -61,5 +62,10 @@ pub const TransformSyllable = struct {
             if (entry.modification == mod) return true;
         }
         return false;
+    }
+
+    pub fn charsLen(self: *const Self) usize {
+        const actual_text = self.buffer[0..self.total_len];
+        return unicode.utf8CountCodepoints(actual_text) catch unreachable;
     }
 };
