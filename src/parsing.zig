@@ -2,23 +2,15 @@
 const std = @import("std");
 const diacritics = @import("diacritics.zig");
 const char_map = @import("char_map.zig");
+const syllable = @import("syllable.zig");
 
 const unicode = std.unicode;
 const testing = std.testing;
 const ToneMark = diacritics.ToneMark;
 const ArrayList = std.ArrayList;
 const LetterModification = diacritics.LetterModification;
-
-pub const SyllableComponents = struct {
-    initial_consonant: []const u8,
-    vowel: []const u8,
-    final_consonant: []const u8,
-};
-
-pub const ModResult = struct {
-    index: usize,
-    mod: LetterModification,
-};
+const ModificationEntry = diacritics.ModificationEntry;
+const SyllableComponents = syllable.SyllableComponents;
 
 fn extractToneChar(cp: u21) ?ToneMark {
     return switch (cp) {
@@ -43,11 +35,11 @@ pub fn extractTone(input: []const u8) !?ToneMark {
     return null;
 }
 
-pub fn extractLetterModification(allocator: std.mem.Allocator, input: []const u8) ![]ModResult {
+pub fn extractLetterModification(allocator: std.mem.Allocator, input: []const u8) ![]ModificationEntry {
     var utf8_view = try unicode.Utf8View.init(input);
     var iter = utf8_view.iterator();
 
-    var result: ArrayList(ModResult) = .empty;
+    var result: ArrayList(ModificationEntry) = .empty;
     errdefer result.deinit(allocator);
     var current_index: usize = 0;
 

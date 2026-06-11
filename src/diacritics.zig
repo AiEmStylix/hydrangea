@@ -23,3 +23,8 @@ pub const LetterModification = enum {
     /// The stroke through d - changes d to đ
     Dyet,
 };
+
+pub const ModificationEntry = struct {
+    index: usize,
+    mod: LetterModification,
+};
