@@ -21,7 +21,7 @@ pub const TransformSyllable = struct {
     final_len: u4,
 
     tone_mark: ?ToneMark,
-    letter_modifications: [2]ModificationEntry,
+    letter_modifications: [2]ModificationEntry, // Maximum modification of a word is 2
     letter_modification_len: u2,
 
     const Self = @This();
