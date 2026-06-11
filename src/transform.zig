@@ -1,6 +1,6 @@
-const syllable = @import("syllable.zig");
 const diacritics = @import("diacritics.zig");
-const TransformSyllable = syllable.TransformSyllable;
+const TransformSyllable = @import("syllable.zig").TransformSyllable;
+const LetterModification = diacritics.LetterModification;
 const ToneMark = diacritics.ToneMark;
 
 /// Core of engine
@@ -18,25 +18,25 @@ pub const Transformation = enum {
     Ignored,
 };
 
-pub fn addTone(transformSyllable: *TransformSyllable, tone_mark: ToneMark) Transformation {
-    if (transformSyllable.isEmpty() and transformSyllable.charsLen() > MAX_WORLD_LENGTH) {
+pub fn addTone(syllable: *TransformSyllable, tone_mark: ToneMark) Transformation {
+    if (syllable.isEmpty() and syllable.charsLen() > MAX_WORLD_LENGTH) {
         return Transformation.Ignored;
     }
 
-    if (transformSyllable.vowel() == undefined) {
+    if (syllable.vowel() == undefined) {
         return Transformation.Ignored;
     }
 
-    if (transformSyllable.tone_mark) |existing_tone_mark| {
+    if (syllable.tone_mark) |existing_tone_mark| {
         if (existing_tone_mark == tone_mark) {
-            transformSyllable.tone_mark = null;
+            syllable.tone_mark = null;
             return Transformation.ToneMarkRemoved;
         } else {
-            transformSyllable.tone_mark = tone_mark;
+            syllable.tone_mark = tone_mark;
             return Transformation.ToneMarkReplaced;
         }
     } else {
-        transformSyllable.tone_mark = tone_mark;
+        syllable.tone_mark = tone_mark;
         return Transformation.ToneMarkAdded;
     }
 }
@@ -53,3 +53,5 @@ pub fn removeTone(input: *TransformSyllable) Transformation {
 
     return Transformation.Ignored;
 }
+
+pub fn modifyLetter(syllable: *TransformSyllable, letter_modification: *LetterModification) Transformation {}
