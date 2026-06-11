@@ -16,6 +16,7 @@ Build dependacies
 Credits
 ===
 This project is heavily inspired by:
+- [unikey](https://www.unikey.org/source.html)
 - [vi-rs](https://github.com/ZeroX-DG/vi-rs)
 - [ibus-bamboo](https://github.com/BambooEngine/ibus-bamboo)
 
