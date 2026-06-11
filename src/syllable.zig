@@ -1,5 +1,7 @@
 const ToneMark = @import("diacritics.zig").ToneMark;
-const ModificationEntry = @import("diacritics.zig").ModificationEntry;
+const diacritics = @import("diacritics.zig");
+const LetterModification = diacritics.LetterModification;
+const ModificationEntry = diacritics.ModificationEntry;
 
 pub const SyllableComponents = struct {
     initial_consonant: []const u8,
@@ -35,5 +37,29 @@ pub const TransformSyllable = struct {
             .letter_modifications = undefined,
             .letter_modification_len = 0,
         };
+    }
+
+    pub fn initialConsonant(self: *const Self) []const u8 {
+        return self.buffer[0..self.initial_len];
+    }
+
+    pub fn vowel(self: *const Self) []const u8 {
+        return self.buffer[self.initial_len .. self.initial_len + self.vowel_len];
+    }
+
+    pub fn finalConsonant(self: *const Self) []const u8 {
+        const start = self.initial_len + self.vowel_len;
+        return self.buffer[start .. start + self.final_len];
+    }
+
+    pub fn isEmpty(self: *const Self) bool {
+        return self.total_len == 0;
+    }
+
+    pub fn containsModification(self: *const Self, mod: LetterModification) bool {
+        for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
+            if (entry.modification == mod) return true;
+        }
+        return false;
     }
 };
