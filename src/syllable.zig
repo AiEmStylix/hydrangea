@@ -50,6 +50,14 @@ pub const TransformSyllable = struct {
         self.reparseBoundaries();
     }
 
+    pub fn addingLetterModifcation(self: *Self, entry: ModificationEntry) bool {
+        if (self.letter_modification_len >= self.letter_modifications.len) return false;
+        self.letter_modifications[self.letter_modification_len] = entry;
+        self.letter_modification_len += 1;
+
+        return true;
+    }
+
     // Auto calculate the syllable's component length
     pub fn reparseBoundaries(self: *Self) void {
         const text = self.buffer[0..self.total_len];

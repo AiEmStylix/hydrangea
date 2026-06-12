@@ -3,6 +3,7 @@ const testing = std.testing;
 const diacritics = @import("diacritics.zig");
 const TransformSyllable = @import("syllable.zig").TransformSyllable;
 const LetterModification = diacritics.LetterModification;
+const ModificationEntry = diacritics.ModificationEntry;
 const ToneMark = diacritics.ToneMark;
 
 /// Core of engine
@@ -60,6 +61,18 @@ pub fn modifyLetter(syllable: *TransformSyllable, modification: LetterModificati
     if (syllable.isEmpty() or syllable.charsLen() > MAX_WORLD_LENGTH) {
         return .Ignored;
     }
+
+    if (modification == .Dyet) {
+        if (syllable.buffer[0] == 'd' or syllable.buffer[0] == 'D') {
+            const entry: ModificationEntry = .{ .index = 0, .mod = .Dyet };
+            const result = syllable.addingLetterModifcation(entry);
+
+            if (!result) return .Ignored;
+
+            return .LetterModificationAdded;
+        }
+    }
+    return .Ignored;
 }
 
 test "Add, replace, and remove tone" {
