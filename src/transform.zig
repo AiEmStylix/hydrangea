@@ -56,11 +56,11 @@ pub fn removeTone(input: *TransformSyllable) Transformation {
     return .Ignored;
 }
 
-// pub fn modifyLetter(syllable: *TransformSyllable, modification: LetterModification) Transformation {
-//     if (syllable.isEmpty() or syllable.charsLen() > MAX_WORLD_LENGTH) {
-//         return .Ignored;
-//     }
-// }
+pub fn modifyLetter(syllable: *TransformSyllable, modification: LetterModification) Transformation {
+    if (syllable.isEmpty() or syllable.charsLen() > MAX_WORLD_LENGTH) {
+        return .Ignored;
+    }
+}
 
 test "Add, replace, and remove tone" {
     var syllable = TransformSyllable.init();
@@ -90,4 +90,18 @@ test "Add, replace, and remove tone" {
 
     try testing.expectEqual(Transformation.ToneMarkRemoved, result);
     try testing.expectEqual(@as(?ToneMark, null), syllable.tone_mark);
+}
+
+test "Modify letter (dyet)" {
+    var syllable = TransformSyllable.init();
+    syllable.appendChar('d');
+    var result = modifyLetter(&syllable, .Dyet);
+
+    try testing.expectEqual(Transformation.LetterModificationAdded, result);
+    try testing.expectEqual(@as(?LetterModification, .Dyet), syllable.letter_modifications[0].mod);
+
+    result = modifyLetter(&syllable, .Dyet);
+
+    try testing.expectEqual(Transformation.LetterModificationRemoved, result);
+    try testing.expectEqual(@as(?LetterModification, null), syllable.letter_modifications[0].mod);
 }
