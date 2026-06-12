@@ -1,5 +1,6 @@
 const unicode = @import("std").unicode;
 const ToneMark = @import("diacritics.zig").ToneMark;
+const parsing = @import("parsing.zig");
 const diacritics = @import("diacritics.zig");
 const LetterModification = diacritics.LetterModification;
 const ModificationEntry = diacritics.ModificationEntry;
@@ -38,6 +39,25 @@ pub const TransformSyllable = struct {
             .letter_modifications = undefined,
             .letter_modification_len = 0,
         };
+    }
+
+    pub fn appendChar(self: *Self, char: u8) void {
+        if (self.total_len >= MAX_SYLLABLE_LEN) return;
+
+        self.buffer[self.total_len] = char;
+        self.total_len += 1;
+
+        self.reparseBoundaries();
+    }
+
+    // Auto calculate the syllable's component length
+    pub fn reparseBoundaries(self: *Self) void {
+        const text = self.buffer[0..self.total_len];
+        if (parsing.parseSyllable(text)) |components| {
+            self.initial_len = @intCast(components.initial_consonant.len);
+            self.vowel_len = @intCast(components.vowel.len);
+            self.final_len = @intCast(components.final_consonant.len);
+        } else |_| {}
     }
 
     pub fn initialConsonant(self: *const Self) []const u8 {
