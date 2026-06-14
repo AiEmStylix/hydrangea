@@ -64,12 +64,45 @@ pub fn modifyLetter(syllable: *TransformSyllable, modification: LetterModificati
 
     if (modification == .Dyet) {
         if (syllable.buffer[0] == 'd' or syllable.buffer[0] == 'D') {
+            if (syllable.containsModification(.Dyet)) {
+                syllable.removeModification(.Dyet);
+                return .LetterModificationRemoved;
+            }
             const entry: ModificationEntry = .{ .index = 0, .mod = .Dyet };
             const result = syllable.addingLetterModifcation(entry);
 
             if (!result) return .Ignored;
 
             return .LetterModificationAdded;
+        }
+    }
+
+    if (modification == .Horn) {
+        if (std.mem.find(u8, &syllable.buffer, "uo")) |idx| {
+            if (syllable.containsModification(.Horn)) {
+                syllable.removeModification(.Horn);
+                return .LetterModificationRemoved;
+            }
+            const entry: ModificationEntry = .{ .index = idx, .mod = .Horn };
+            const result = syllable.addingLetterModifcation(entry);
+            _ = syllable.addingLetterModifcation(.{ .index = idx + 1, .mod = .Horn });
+
+            if (!result) return .Ignored;
+
+            return .LetterModificationAdded;
+        } else if (std.mem.find(u8, &syllable.buffer, "u") orelse std.mem.find(u8, &syllable.buffer, "o")) |idx| {
+            if (syllable.containsModification(.Horn)) {
+                syllable.removeModification(.Horn);
+                return .LetterModificationRemoved;
+            }
+            const entry: ModificationEntry = .{ .index = idx, .mod = .Horn };
+            const result = syllable.addingLetterModifcation(entry);
+
+            if (!result) return .Ignored;
+
+            return .LetterModificationAdded;
+        } else {
+            return .Ignored;
         }
     }
     return .Ignored;
@@ -116,5 +149,25 @@ test "Modify letter (dyet)" {
     result = modifyLetter(&syllable, .Dyet);
 
     try testing.expectEqual(Transformation.LetterModificationRemoved, result);
-    try testing.expectEqual(@as(?LetterModification, null), syllable.letter_modifications[0].mod);
+    try testing.expectEqual(0, syllable.letter_modification_len);
+}
+
+test "Modify letter (horn)" {
+    var syllable = TransformSyllable.init();
+    syllable.appendChar('d');
+    syllable.appendChar('u');
+    syllable.appendChar('o');
+    syllable.appendChar('c');
+
+    var result = modifyLetter(&syllable, .Horn);
+
+    try testing.expectEqual(Transformation.LetterModificationAdded, result);
+    try testing.expectEqual(@as(?LetterModification, .Horn), syllable.letter_modifications[0].mod);
+    try testing.expectEqual(2, syllable.letter_modification_len);
+    try testing.expectEqual(1, syllable.letter_modifications[0].index);
+    try testing.expectEqual(2, syllable.letter_modifications[1].index);
+
+    result = modifyLetter(&syllable, .Horn);
+    try testing.expectEqual(Transformation.LetterModificationRemoved, result);
+    try testing.expectEqual(0, syllable.letter_modification_len);
 }

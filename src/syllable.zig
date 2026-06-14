@@ -23,7 +23,7 @@ pub const TransformSyllable = struct {
     final_len: u4,
 
     tone_mark: ?ToneMark,
-    letter_modifications: [2]ModificationEntry, // Maximum modification of a word is 2
+    letter_modifications: [3]ModificationEntry, // Maximum letter modification is 3, for example: được (đ, ư, ơ)
     letter_modification_len: u2,
 
     const Self = @This();
@@ -48,14 +48,6 @@ pub const TransformSyllable = struct {
         self.total_len += 1;
 
         self.reparseBoundaries();
-    }
-
-    pub fn addingLetterModifcation(self: *Self, entry: ModificationEntry) bool {
-        if (self.letter_modification_len >= self.letter_modifications.len) return false;
-        self.letter_modifications[self.letter_modification_len] = entry;
-        self.letter_modification_len += 1;
-
-        return true;
     }
 
     // Auto calculate the syllable's component length
@@ -85,11 +77,31 @@ pub const TransformSyllable = struct {
         return self.total_len == 0;
     }
 
+    pub fn addingLetterModifcation(self: *Self, entry: ModificationEntry) bool {
+        if (self.letter_modification_len >= self.letter_modifications.len) return false;
+        self.letter_modifications[self.letter_modification_len] = entry;
+        self.letter_modification_len += 1;
+
+        return true;
+    }
+
     pub fn containsModification(self: *const Self, mod: LetterModification) bool {
         for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
-            if (entry.modification == mod) return true;
+            if (entry.mod == mod) return true;
         }
         return false;
+    }
+
+    // It actually decrease the length, not remove the mod from array
+    pub fn removeModification(self: *Self, mod: LetterModification) void {
+        var new_len: u2 = 0;
+        for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
+            if (entry.mod != mod) {
+                self.letter_modifications[new_len] = entry;
+                new_len += 1;
+            }
+        }
+        self.letter_modification_len = new_len;
     }
 
     pub fn charsLen(self: *const Self) usize {
