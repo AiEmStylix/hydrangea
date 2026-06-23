@@ -16,11 +16,11 @@ const MAX_SYLLABLE_LEN = 16;
 //Represent syllable that currently being transform
 pub const TransformSyllable = struct {
     buffer: [MAX_SYLLABLE_LEN]u8, // Store clean text
-    total_len: u4,
+    total_len: u8,
 
-    initial_len: u4, // 0..16
-    vowel_len: u4,
-    final_len: u4,
+    initial_len: u8, // 0..16
+    vowel_len: u8,
+    final_len: u8,
 
     tone_mark: ?ToneMark,
     letter_modifications: [3]ModificationEntry, // Maximum letter modification is 3, for example: được (đ, ư, ơ)
@@ -92,11 +92,17 @@ pub const TransformSyllable = struct {
         return false;
     }
 
-    // It actually decrease the length, not remove the mod from array
-    pub fn removeModification(self: *Self, mod: LetterModification) void {
-        var new_len: u2 = 0;
+    pub fn getModificationAt(self: *const Self, idx: usize) ?LetterModification {
         for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
-            if (entry.mod != mod) {
+            if (entry.index == idx) return LetterModification;
+        }
+        return null;
+    }
+
+    pub fn removeModificationAt(self: *Self, idx: usize) void {
+        var new_len: u8 = 0;
+        for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
+            if (entry.index != idx) {
                 self.letter_modifications[new_len] = entry;
                 new_len += 1;
             }
@@ -104,8 +110,25 @@ pub const TransformSyllable = struct {
         self.letter_modification_len = new_len;
     }
 
-    pub fn charsLen(self: *const Self) usize {
-        const actual_text = self.buffer[0..self.total_len];
-        return unicode.utf8CountCodepoints(actual_text) catch unreachable;
+    pub fn replaceModificationAt(self: *Self, idx: usize, new_mod: LetterModification) bool {
+        for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
+            if (entry.index == idx) {
+                entry.mod == new_mod;
+                return;
+            }
+        }
     }
+
+    // // It actually decrease the length, not remove the mod from array
+    // pub fn removeModification(self: *Self, mod: LetterModification) void {
+    //     var new_len: u2 = 0;
+    //     for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
+    //         if (entry.mod != mod) {
+    //             self.letter_modifications[new_len] = entry;
+    //             new_len += 1;
+    //         }
+    //     }
+    //     self.letter_modification_len = new_len;
+    // }
+
 };
