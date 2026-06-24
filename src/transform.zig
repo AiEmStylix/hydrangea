@@ -312,11 +312,28 @@ test "Modify letter (Breve)" {
     syllable2.appendChar('n');
     syllable2.appendChar('g');
 
-    std.debug.print("{s}", .{syllable2.vowel()});
-
     try testing.expectEqual(Transformation.LetterModificationAdded, result);
     try testing.expectEqual(@as(?LetterModification, .Breve), syllable.letter_modifications[0].mod);
     try testing.expectEqual(1, syllable.letter_modification_len);
     try testing.expectEqual(0, syllable.letter_modifications[0].index);
     try testing.expectEqual(LetterModification.Breve, syllable.letter_modifications[0].mod);
+}
+
+test "Modify letter from Horn to Circumflex" {
+    var syllable = TransformSyllable.init();
+    syllable.appendChar('b');
+    syllable.appendChar('u');
+    syllable.appendChar('o');
+    syllable.appendChar('n');
+    syllable.appendChar('g');
+
+    const result = modifyLetter(&syllable, .Horn);
+
+    try testing.expectEqual(Transformation.LetterModificationAdded, result);
+    try testing.expectEqual(@as(?LetterModification, .Horn), syllable.letter_modifications[0].mod);
+    try testing.expectEqual(@as(?LetterModification, .Horn), syllable.letter_modifications[1].mod);
+
+    const mod2 = modifyLetter(&syllable, .Circumflex);
+    try testing.expectEqual(Transformation.LetterModificationReplaced, mod2);
+    try testing.expectEqual(@as(?LetterModification, .Circumflex), syllable.letter_modifications[0].mod);
 }
