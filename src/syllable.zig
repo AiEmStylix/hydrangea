@@ -68,6 +68,9 @@ pub const TransformSyllable = struct {
         return self.buffer[self.initial_len .. self.initial_len + self.vowel_len];
     }
 
+    pub fn vowelStartIdx(self: *const Self) usize {
+        return self.initial_len;
+    }
     pub fn finalConsonant(self: *const Self) []const u8 {
         const start = self.initial_len + self.vowel_len;
         return self.buffer[start .. start + self.final_len];
@@ -94,9 +97,20 @@ pub const TransformSyllable = struct {
 
     pub fn getModificationAt(self: *const Self, idx: usize) ?LetterModification {
         for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
-            if (entry.index == idx) return LetterModification;
+            if (entry.index == idx) return entry.mod;
         }
         return null;
+    }
+
+    pub fn removeModification(self: *Self, mod: LetterModification) void {
+        var new_len: u2 = 0;
+        for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
+            if (entry.mod != mod) {
+                self.letter_modifications[new_len] = entry;
+                new_len += 1;
+            }
+        }
+        self.letter_modification_len = new_len;
     }
 
     pub fn removeModificationAt(self: *Self, idx: usize) void {
@@ -110,25 +124,12 @@ pub const TransformSyllable = struct {
         self.letter_modification_len = new_len;
     }
 
-    pub fn replaceModificationAt(self: *Self, idx: usize, new_mod: LetterModification) bool {
-        for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
+    pub fn replaceModificationAt(self: *Self, idx: usize, new_mod: LetterModification) void {
+        for (self.letter_modifications[0..self.letter_modification_len]) |*entry| {
             if (entry.index == idx) {
-                entry.mod == new_mod;
+                entry.mod = new_mod;
                 return;
             }
         }
     }
-
-    // // It actually decrease the length, not remove the mod from array
-    // pub fn removeModification(self: *Self, mod: LetterModification) void {
-    //     var new_len: u2 = 0;
-    //     for (self.letter_modifications[0..self.letter_modification_len]) |entry| {
-    //         if (entry.mod != mod) {
-    //             self.letter_modifications[new_len] = entry;
-    //             new_len += 1;
-    //         }
-    //     }
-    //     self.letter_modification_len = new_len;
-    // }
-
 };

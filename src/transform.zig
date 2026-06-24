@@ -22,7 +22,7 @@ pub const Transformation = enum {
 };
 
 pub fn addTone(syllable: *TransformSyllable, tone_mark: ToneMark) Transformation {
-    if (syllable.isEmpty() or syllable.charsLen() > MAX_WORLD_LENGTH) {
+    if (syllable.isEmpty() or syllable.total_len > MAX_WORLD_LENGTH) {
         return .Ignored;
     }
 
@@ -57,11 +57,19 @@ pub fn removeTone(input: *TransformSyllable) Transformation {
     return .Ignored;
 }
 
+// Hardest thing i ever implement
+// Might need to rework the function a little bit more
 pub fn modifyLetter(syllable: *TransformSyllable, modification: LetterModification) Transformation {
-    if (syllable.isEmpty() or syllable.charsLen() > MAX_WORLD_LENGTH) {
+    if (syllable.isEmpty() or syllable.total_len > MAX_WORLD_LENGTH) {
         return .Ignored;
     }
 
+    const vowel = syllable.vowel();
+
+    var buf: [64]u8 = undefined;
+    const lower = std.ascii.lowerString(buf[0..vowel.len], vowel);
+    // Phần dễ nhất, thanh ngang thì chỉ có thêm hoặc xóa,
+    // không có bị ai chen vào, ước gì đống sau cũng dễ như thế TT
     if (modification == .Dyet) {
         if (syllable.buffer[0] == 'd' or syllable.buffer[0] == 'D') {
             if (syllable.containsModification(.Dyet)) {
@@ -77,64 +85,150 @@ pub fn modifyLetter(syllable: *TransformSyllable, modification: LetterModificati
         }
     }
 
-    if (modification == .Horn) {
-        if (std.mem.find(u8, &syllable.buffer, "uo")) |idx| {
-            if (syllable.containsModification(.Horn)) {
-                syllable.removeModification(.Horn);
-                return .LetterModificationRemoved;
-            }
-            const entry: ModificationEntry = .{ .index = idx, .mod = .Horn };
-            const result = syllable.addingLetterModifcation(entry) and syllable.addingLetterModifcation(.{ .index = idx + 1, .mod = .Horn });
-
-            if (!result) return .Ignored;
-
-            return .LetterModificationAdded;
-        } else if (std.mem.findAny(u8, &syllable.buffer, "uo")) |idx| {
-            if (syllable.containsModification(.Horn)) {
-                syllable.removeModification(.Horn);
-                return .LetterModificationRemoved;
-            }
-            const entry: ModificationEntry = .{ .index = idx, .mod = .Horn };
-            const result = syllable.addingLetterModifcation(entry);
-
-            if (!result) return .Ignored;
-
-            return .LetterModificationAdded;
-        } else {
-            return .Ignored;
-        }
-    }
-
+    // Dấu trăng (Breve) chỉ có với chữ a thôi nên xử lý rất nhanh
     if (modification == .Breve) {
-        if (std.mem.findAny(u8, &syllable.buffer, "aA")) |idx| {
+        if (std.mem.eql(u8, lower, "a")) {
             if (syllable.containsModification(.Breve)) {
                 syllable.removeModification(.Breve);
                 return .LetterModificationRemoved;
             }
-            const entry: ModificationEntry = .{ .index = idx, .mod = .Breve };
+            const vowelIdx = syllable.vowelStartIdx();
+
+            // Nếu từ đó đã có dấu mũ, thay thế nó bằng dấu trăng
+            if (syllable.containsModification(.Circumflex)) {
+                syllable.replaceModificationAt(vowelIdx, .Breve);
+                return .LetterModificationReplaced;
+            }
+
+            const entry: ModificationEntry = .{ .index = vowelIdx, .mod = .Breve };
             const result = syllable.addingLetterModifcation(entry);
 
             if (!result) return .Ignored;
             return .LetterModificationAdded;
-        } else {
-            return .Ignored;
         }
     }
 
+    // Logic thay thế của dấu mũ
     if (modification == .Circumflex) {
-        if (std.mem.findAny(u8, &syllable.buffer, "aeoAEO")) |idx| {
+        // Xử lý với các trường hợp như ă => â, a => â
+        if (std.mem.eql(u8, lower, "a")) {
             if (syllable.containsModification(.Circumflex)) {
                 syllable.removeModification(.Circumflex);
                 return .LetterModificationRemoved;
             }
-            const entry: ModificationEntry = .{ .index = idx, .mod = .Circumflex };
+
+            const vowelIdx = syllable.vowelStartIdx();
+
+            if (syllable.containsModification(.Breve)) {
+                syllable.replaceModificationAt(vowelIdx, .Circumflex);
+                return .LetterModificationReplaced;
+            }
+
+            const entry: ModificationEntry = .{ .index = vowelIdx, .mod = .Circumflex };
             const result = syllable.addingLetterModifcation(entry);
 
             if (!result) return .Ignored;
-
             return .LetterModificationAdded;
-        } else {
-            return .Ignored;
+            // Truờng hợp e thì chỉ có chuyển từ e => ê, không có dấu mũ nào nên không cần handle replaced
+        } else if (std.mem.eql(u8, lower, "e")) {
+            if (syllable.containsModification(.Circumflex)) {
+                syllable.removeModification(.Circumflex);
+                return .LetterModificationRemoved;
+            }
+
+            const vowelIdx = syllable.vowelStartIdx();
+            const entry: ModificationEntry = .{ .index = vowelIdx, .mod = .Circumflex };
+            const result = syllable.addingLetterModifcation(entry);
+
+            if (!result) return .Ignored;
+            return .LetterModificationAdded;
+        } else if (std.mem.eql(u8, lower, "uo")) {
+            const mod_o_idx = syllable.vowelStartIdx() + 1;
+            if (syllable.containsModification(.Circumflex) and syllable.getModificationAt(mod_o_idx) == .Circumflex) {
+                syllable.removeModification(.Circumflex);
+                return .LetterModificationRemoved;
+            }
+
+            // Nếu là trường hợp dấu móc như uơ => ưô => uô
+            if (syllable.containsModification(.Horn)) {
+                syllable.replaceModificationAt(mod_o_idx, .Circumflex);
+                syllable.removeModification(.Horn);
+
+                return .LetterModificationReplaced;
+            }
+
+            const entry: ModificationEntry = .{ .index = mod_o_idx, .mod = .Circumflex };
+            const result = syllable.addingLetterModifcation(entry);
+
+            if (!result) return .Ignored;
+            return .LetterModificationAdded;
+        } else if (std.mem.eql(u8, lower, "o")) {
+            const vowelIdx = syllable.vowelStartIdx();
+            if (syllable.containsModification(.Circumflex)) {
+                syllable.removeModification(.Circumflex);
+                return .LetterModificationRemoved;
+            }
+
+            if (syllable.containsModification(.Horn)) {
+                syllable.replaceModificationAt(syllable.vowelStartIdx(), .Circumflex);
+                return .LetterModificationReplaced;
+            }
+
+            const entry: ModificationEntry = .{ .index = vowelIdx, .mod = .Circumflex };
+            const result = syllable.addingLetterModifcation(entry);
+
+            if (!result) return .Ignored;
+            return .LetterModificationAdded;
+        }
+    }
+
+    if (modification == .Horn) {
+        if (std.mem.eql(u8, lower, "uo")) {
+            if (syllable.containsModification(.Horn)) {
+                syllable.removeModification(.Horn);
+                return .LetterModificationRemoved;
+            }
+            // Trường hợp uô => uo => ươ
+            const vowelIdx = syllable.vowelStartIdx();
+            if (syllable.containsModification(.Circumflex)) {
+                syllable.removeModification(.Circumflex);
+
+                _ = syllable.addingLetterModifcation(.{ .index = vowelIdx, .mod = .Horn });
+                _ = syllable.addingLetterModifcation(.{ .index = vowelIdx + 1, .mod = .Horn });
+                return .LetterModificationReplaced;
+            }
+
+            _ = syllable.addingLetterModifcation(.{ .index = vowelIdx, .mod = .Horn });
+            _ = syllable.addingLetterModifcation(.{ .index = vowelIdx + 1, .mod = .Horn });
+            return .LetterModificationAdded;
+        } else if (std.mem.eql(u8, lower, "u")) {
+            // Truờng hợp của từ u, không có dấu nào ngoài dấu mũ
+            const vowelIdx = syllable.vowelStartIdx();
+            if (syllable.containsModification(.Horn)) {
+                syllable.removeModification(.Horn);
+                return .LetterModificationRemoved;
+            }
+            const entry: ModificationEntry = .{ .index = vowelIdx, .mod = .Horn };
+            const result = syllable.addingLetterModifcation(entry);
+
+            if (!result) return .Ignored;
+            return .LetterModificationAdded;
+        } else if (std.mem.eql(u8, lower, "o")) {
+            const vowelIdx = syllable.vowelStartIdx();
+            if (syllable.containsModification(.Horn)) {
+                syllable.removeModification(.Horn);
+                return .LetterModificationRemoved;
+            }
+
+            if (syllable.containsModification(.Circumflex)) {
+                syllable.replaceModificationAt(vowelIdx, .Horn);
+                return .LetterModificationReplaced;
+            }
+            const entry: ModificationEntry = .{ .index = vowelIdx, .mod = .Horn };
+            const result = syllable.addingLetterModifcation(entry);
+
+            if (!result) return .Ignored;
+            return .LetterModificationAdded;
         }
     }
 
@@ -210,6 +304,15 @@ test "Modify letter (Breve)" {
     syllable.appendChar('a');
 
     const result = modifyLetter(&syllable, .Breve);
+
+    var syllable2 = TransformSyllable.init();
+    syllable2.appendChar('b');
+    syllable2.appendChar('u');
+    syllable2.appendChar('o');
+    syllable2.appendChar('n');
+    syllable2.appendChar('g');
+
+    std.debug.print("{s}", .{syllable2.vowel()});
 
     try testing.expectEqual(Transformation.LetterModificationAdded, result);
     try testing.expectEqual(@as(?LetterModification, .Breve), syllable.letter_modifications[0].mod);
