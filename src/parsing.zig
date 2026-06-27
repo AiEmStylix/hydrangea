@@ -10,7 +10,12 @@ const ToneMark = diacritics.ToneMark;
 const ArrayList = std.ArrayList;
 const LetterModification = diacritics.LetterModification;
 const ModificationEntry = diacritics.ModificationEntry;
-const SyllableComponents = syllable.SyllableComponents;
+
+pub const SyllableComponents = struct {
+    initial_consonant: []const u8,
+    vowel: []const u8,
+    final_consonant: []const u8,
+};
 
 fn extractToneChar(cp: u21) ?ToneMark {
     return switch (cp) {

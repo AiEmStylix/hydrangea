@@ -353,3 +353,13 @@ pub fn getModification(c: u21) ?LetterModification {
         else => null,
     };
 }
+
+pub fn applyTone(codepoint: u21, tone: diacritics.ToneMark) ?u21 {
+    return switch (tone) {
+        .Acute => getAccute(codepoint),
+        .Grave => getGrave(codepoint),
+        .HookAbove => getHookAbove(codepoint),
+        .Tilde => getTilde(codepoint),
+        .Underdot => getUnderdot(codepoint),
+    };
+}
