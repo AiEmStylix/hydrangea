@@ -38,6 +38,11 @@ pub const TransformSyllable = struct {
         };
     }
 
+    pub fn reset(self: *Self) Self {
+        self.* = Self.init();
+        return self.*;
+    }
+
     pub fn appendChar(self: *Self, char: u8) void {
         if (self.total_len >= MAX_SYLLABLE_LEN) return;
 
