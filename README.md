@@ -22,6 +22,10 @@ This project is heavily inspired by:
 
 Donate
 ===
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C41GR9WE)
-[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/stylix)
+Support the development of this project:
 
+*   **VNĐ (Nội địa):** 
+    [Zypage](https://zypage.com/stylix)
+*   **Foreign Currency (Quốc tế):** 
+
+    [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/stylix)
