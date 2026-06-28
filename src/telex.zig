@@ -17,7 +17,7 @@ pub fn parseKey(c: u8) TelexAction {
         'f', 'F' => .{ .Tone = .Grave },
         'r', 'R' => .{ .Tone = .HookAbove },
         'x', 'X' => .{ .Tone = .Tilde },
-        'j', 'J' => .{ .Tone = .DotBelow },
+        'j', 'J' => .{ .Tone = .Underdot },
 
         'w', 'W' => .SpecialW,
         'z', 'Z' => .ClearZ,
@@ -27,13 +27,13 @@ pub fn parseKey(c: u8) TelexAction {
 }
 
 fn isDoubleTap(syllable: *TransformSyllable, current_char: u8) bool {
-    if (syllable.total_len == 0) return false;
-    const last_char = syllable.buffer[syllable.total_len - 1];
-
-    const lower_last = std.ascii.toLower(last_char);
     const lower_current = std.ascii.toLower(current_char);
-
-    return lower_last == lower_current;
+    for (syllable.buffer[0..syllable.total_len]) |c| {
+        if (std.ascii.toLower(c) == lower_current) {
+            return true;
+        }
+    }
+    return false;
 }
 
 pub fn processKeyStroke(syllable: *TransformSyllable, char: u8) bool {
@@ -48,11 +48,18 @@ pub fn processKeyStroke(syllable: *TransformSyllable, char: u8) bool {
                 const result = transform.modifyLetter(syllable, .Dyet);
                 if (result != .Ignored) return true;
             } else if ((lower_c == 'a' or lower_c == 'e' or lower_c == 'o') and isDoubleTap(syllable, lower_c)) {
-                const result = transform.modifyLetter(.Circumflex);
+                const result = transform.modifyLetter(syllable, .Circumflex);
                 if (result != .Ignored) return true;
             }
 
             syllable.appendChar(c);
+            return true;
+        },
+        .Modification => |mod| {
+            const result = transform.modifyLetter(syllable, mod);
+            if (result == .Ignored) {
+                syllable.appendChar(char);
+            }
             return true;
         },
         .Tone => |t| {
