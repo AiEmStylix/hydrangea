@@ -84,6 +84,10 @@ pub fn processKeyStroke(syllable: *TransformSyllable, char: u8) bool {
             return true;
         },
         .ClearZ => {
+            const result = transform.removeTone(syllable);
+            if (result == .Ignored) {
+                return false;
+            }
             return true;
         },
     }
