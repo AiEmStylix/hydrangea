@@ -1,0 +1,10 @@
+labels:
+  environment: local
+  hardware: my-pc
+
+steps:
+  test-agent:
+    image: alpine
+    commands:
+      - echo "Hello từ self-hosted agent!"
+      - uname -a
