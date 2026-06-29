@@ -45,7 +45,7 @@ pub fn addTone(syllable: *TransformSyllable, tone_mark: ToneMark) Transformation
 }
 
 pub fn removeTone(input: *TransformSyllable) Transformation {
-    if (input.charsLen() > MAX_WORLD_LENGTH) {
+    if (input.buffer.len > MAX_WORLD_LENGTH) {
         return .Ignored;
     }
 
