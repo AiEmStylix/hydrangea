@@ -25,6 +25,8 @@ Donate
 Support the development of this project:
 
 *   **VNĐ (Nội địa):** 
+
     [Zypage](https://zypage.com/stylix)
 *   **Foreign Currency (Quốc tế):** 
-    [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/stylix)
+
+    [Buy Me A Coffee](https://www.buymeacoffee.com/stylix)
